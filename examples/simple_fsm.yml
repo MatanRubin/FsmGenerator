@@ -1,8 +1,10 @@
 name: simple_fsm
 states:
         - name: S1
-          0: S2
-          1: S1
+          transitions:
+          - 0: S2
+          - 1: S1
         - name: S2
-          0: S1
-          1: S2
+          transitions:
+          - 0: S1
+          - 1: S2

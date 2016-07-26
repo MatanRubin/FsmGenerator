@@ -21,21 +21,17 @@ static void assert_initialized(const mr_fsm_t *fsm) {
 
 // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 // public functions
-void mr_fsm_init(mr_fsm_t *fsm, const char *name) {
-    unsigned int n_states = 2;
-    int err;
 
+void mr_fsm_init(mr_fsm_t *fsm) {
     if (fsm->magic == MR_FSM_MAGIC) {
         printf("[FTL] already initialized!\n");
         abort();
     }
 
-    printf("initializing fsm name='%s' n_states=%d\n", name, n_states);
-    fsm->name = name;
-    fsm->n_states = n_states;
-    fsm->states[0] = &S1;
-    fsm->states[1] = &S2;
-    fsm->current_state = &S1;
+    fsm->name = NULL;
+    fsm->n_states = 0;
+    fsm->states = NULL;
+    fsm->current_state = NULL;
     fsm->ready_for_input = false;
     mr_mutex_init(&fsm->input_mutex, "input_mutex");
     mr_cond_init(&fsm->input_cond, "input_cond");

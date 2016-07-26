@@ -25,7 +25,4 @@ typedef struct mr_fsm_state {
     on_exit_f on_exit;
 } mr_fsm_state_t;
 
-extern mr_fsm_state_t S1;
-extern mr_fsm_state_t S2;
-
 #endif
