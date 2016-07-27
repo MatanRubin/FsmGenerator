@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
-import re
 from os import path
-import sys
 import yaml
-import argparse, argcomplete
+import argparse
+import argcomplete
 
 DESCRIPTION = "Generate an FSM from YAML file"
 
@@ -107,8 +106,8 @@ class Transition(object):
         self.next_state = transition_yml.values()[0]
 
     def __str__(self):
-        return "Transition={{ input={} next_state='{}' }}".format(self.input,
-                                                                  self.next_state)
+        return "Transition={{ input={} next_state='{}' }}"\
+            .format(self.input, self.next_state)
 
     def __repr__(self):
         return self.__str__()
@@ -161,7 +160,7 @@ class FsmGenerator(object):
         states = []
         for state in yml["states"]:
             states.append(State(state))
-        return (name, states)
+        return name, states
 
     def _validate_fsm_yml(self, yml):
         # validate yml structure is legal
@@ -174,12 +173,13 @@ class FsmGenerator(object):
             g.open_block()
             if self.default_implementations:
                 func_name = signature.split(' ')[1].split('(')[0]
-                g.write_line('printf("called function: {}\\n");'.format(func_name))
+                g.write_line('printf("called function: {}\\n");'
+                             .format(func_name))
             else:
                 g.comment("Your code goes here")
             g.close_block()
             g.skip_line()
-        else: # declaration
+        else:  # declaration
             g.write_line(signature + ';')
 
     def _gen_next_state(self, state, definition):
@@ -225,7 +225,8 @@ class FsmGenerator(object):
         g.write_line("switch (int_input)")
         g.open_block()
         for trans in state.transitions:
-            g.write_line("case {}: return &{};".format(trans.input, trans.next_state))
+            g.write_line("case {}: return &{};".format(trans.input,
+                                                       trans.next_state))
         g.write_line("default: abort();")
         g.close_block()
         g.close_block()
@@ -254,7 +255,8 @@ class FsmGenerator(object):
 
         for state in self.states:
             if self.default_implementations:
-                g.title("{} default implementation functions".format(state.name))
+                g.title("{} default implementation functions"
+                        .format(state.name))
             else:
                 g.title("{} Skeleton functions".format(state.name))
             self._gen_on_entry(state, True)
@@ -290,24 +292,25 @@ class FsmGenerator(object):
         g.write_line("void {}_init({} *fsm);".format(self.name, fsm_type))
         g.write_line("void {}_destroy({} *fsm);".format(self.name, fsm_type))
         g.write_line("void {}_start({} *fsm);".format(self.name, fsm_type))
-        g.write_line("void {}_start_at({} *fsm, {} *state);".format(self.name, fsm_type, state_type))
+        g.write_line("void {}_start_at({} *fsm, {} *state);"
+                     .format(self.name, fsm_type, state_type))
         g.write_line("void {}_stop({} *fsm);".format(self.name, fsm_type))
-        g.write_line("{} *{}_get_state(simple_fsm_t *fsm);".format(state_type, self.name, fsm_type))
-        g.write_line("void {}_input({} *fsm, int input);".format(self.name, fsm_type))
-        g.write_line("void {}_print(const {} *fsm);".format(self.name, fsm_type))
+        g.write_line("{} *{}_get_state(simple_fsm_t *fsm);"
+                     .format(state_type, self.name, fsm_type))
+        g.write_line("void {}_input({} *fsm, int input);"
+                     .format(self.name, fsm_type))
+        g.write_line("void {}_print(const {} *fsm);"
+                     .format(self.name, fsm_type))
         g.close_pp_guard()
-
 
     def _generate_fsm_impl(self):
         g = self.generator
         g.set_output_file(self.fsm_impl_path)
 
         sys_includes = ['stdlib.h']
-        # TODO this should go to states generator 
-        if self.default_implementations:
-            sys_includes.append("stdio.h")
         g.gen_system_includes(sys_includes)
-        g.gen_user_includes(['mr_fsm.h', self.fsm_header, self.fsm_states_header])
+        g.gen_user_includes(['mr_fsm.h', self.fsm_header,
+                             self.fsm_states_header])
 
         fsm_type = self.fsm_type
         state_type = self.fsm_state_type
@@ -319,7 +322,7 @@ class FsmGenerator(object):
         g.write_line('mr_fsm_init(fsm);')
         g.write_line('fsm->name = "{}";'.format(self.name))
         g.write_line('fsm->n_states = n_states;')
-        g.write_line('fsm->states = ({0} **)malloc(n_states * sizeof({0} *));'\
+        g.write_line('fsm->states = ({0} **)malloc(n_states * sizeof({0} *));'
                      .format(state_type))
         g.write_line('if (!fsm->states)')
         g.open_block()
@@ -334,7 +337,7 @@ class FsmGenerator(object):
         g.write_line('fsm->current_state = &{};'.format(self.states[0].name))
         g.close_block()
         g.skip_line()
-                    
+
         # generate destroy function
         g.write_line('void {}_destroy({} *fsm)'.format(self.name, fsm_type))
         g.open_block()
@@ -343,15 +346,16 @@ class FsmGenerator(object):
         g.close_block()
         g.skip_line()
 
-    # generate start function
+        # generate start function
         g.write_line('void {}_start({} *fsm)'.format(self.name, fsm_type))
         g.open_block()
         g.write_line('mr_fsm_start(fsm);')
         g.close_block()
         g.skip_line()
 
-    # generate start_at function
-        g.write_line("void {}_start_at({} *fsm, {} *state)".format(self.name, fsm_type, state_type))
+        # generate start_at function
+        g.write_line("void {}_start_at({} *fsm, {} *state)"
+                     .format(self.name, fsm_type, state_type))
         g.open_block()
         g.write_line('mr_fsm_start_at(fsm, state);')
         g.close_block()
@@ -373,19 +377,20 @@ class FsmGenerator(object):
         g.skip_line()
 
         # generate input function
-        g.write_line("void {}_input({} *fsm, int input)".format(self.name, fsm_type))
+        g.write_line("void {}_input({} *fsm, int input)".format(self.name,
+                                                                fsm_type))
         g.open_block()
         g.write_line('mr_fsm_input(fsm, input);')
         g.close_block()
         g.skip_line()
 
         # generate print function
-        g.write_line('void {}_print(const {} *fsm)'.format(self.name, fsm_type))
+        g.write_line('void {}_print(const {} *fsm)'.format(self.name,
+                                                           fsm_type))
         g.open_block()
         g.write_line('mr_fsm_print(fsm);')
         g.close_block()
         g.skip_line()
-
 
     def generate_fsm(self):
         self._generate_fsm_header()
@@ -401,10 +406,7 @@ class FsmGenerator(object):
 
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 def main():
-    input_file = args.input_file
-    input_file = '../examples/simple_fsm.yml'
-
-    fsm_gen = FsmGenerator(input_file, args.output_dir,
+    fsm_gen = FsmGenerator(args.input_file, args.output_dir,
                            args.default_implementations)
     fsm_gen.generate_fsm()
     fsm_gen.generate_states()
