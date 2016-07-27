@@ -34,3 +34,6 @@
 
 # Build directory
 build
+
+# Auto generated code
+*.ag.*
