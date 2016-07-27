@@ -28,12 +28,12 @@ class CodeGenerator(object):
         self.indent = 0
 
     def __str__(self):
-        return "CodeGenerator{ outfile_path={} }".format(self.outfile_path)
+        return "CodeGenerator"
 
-    def set_output_file(self, path):
+    def set_output_file(self, outfile_path):
         if self.outfile is not None:
             self.outfile.close()
-        self.outfile = open(path, 'w')
+        self.outfile = open(outfile_path, 'w')
 
     def write_line(self, line):
         self.outfile.write(self.indent * '\t' + line + '\n')
@@ -275,7 +275,8 @@ class FsmGenerator(object):
         g.gen_user_includes(["mr_fsm_states.h"])
         g.write_line('typedef mr_fsm_state_t {};'.format(self.fsm_state_type))
         for state in self.states:
-            g.write_line('extern simple_fsm_state_t {};'.format(state.name))
+            g.write_line('extern {} {};'.format(self.fsm_state_type,
+                                                state.name))
         g.close_pp_guard()
 
     def _generate_fsm_header(self):
@@ -295,7 +296,7 @@ class FsmGenerator(object):
         g.write_line("void {}_start_at({} *fsm, {} *state);"
                      .format(self.name, fsm_type, state_type))
         g.write_line("void {}_stop({} *fsm);".format(self.name, fsm_type))
-        g.write_line("{} *{}_get_state(simple_fsm_t *fsm);"
+        g.write_line("{} *{}_get_state({} *fsm);"
                      .format(state_type, self.name, fsm_type))
         g.write_line("void {}_input({} *fsm, int input);"
                      .format(self.name, fsm_type))
