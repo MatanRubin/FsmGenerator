@@ -4,7 +4,7 @@
 typedef enum mr_fsm_input_type {
     MR_FSM_INPUT_NONE,
     MR_FSM_INPUT_INT,
-    MR_FSM_INPUT_STRING, /* future */
+    MR_FSM_INPUT_STRING,
     MR_FSM_INPUT_PATTERN, /* future */
     MR_FSM_INPUT_BLOB, /* future */
     MR_FSM_INPUT_LAST

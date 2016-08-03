@@ -92,9 +92,9 @@ int main(int argc, char **argv) {
     simple_fsm_print(&fsm);
 
     simple_fsm_start(&fsm);
-    simple_fsm_input(&fsm, 0);
-    simple_fsm_input(&fsm, 1);
-    simple_fsm_input(&fsm, 1);
+    simple_fsm_input_int(&fsm, 0);
+    simple_fsm_input_int(&fsm, 1);
+    simple_fsm_input_int(&fsm, 1);
 
     simple_fsm_stop(&fsm);
     simple_fsm_destroy(&fsm);

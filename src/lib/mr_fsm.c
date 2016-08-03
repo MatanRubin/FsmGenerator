@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
+#include <string.h>
 #include "mr_fsm_states.h"
 
 #include "mr_fsm.h"
@@ -67,6 +68,8 @@ void *mr_fsm_execution_loop(void *args) {
     }
 
     while (fsm->should_run) {
+        void *current_input = NULL;
+
         fsm->current_state->on_entry();
 
         mr_mutex_lock(&fsm->input_mutex);
@@ -80,13 +83,29 @@ void *mr_fsm_execution_loop(void *args) {
         while (fsm->ready_for_input) {
             mr_cond_wait(&fsm->input_cond, &fsm->input_mutex);
         }
-        fsm->current_state->exec(MR_FSM_INPUT_INT, &fsm->current_input);
+        switch (fsm->current_input_type) {
+            case MR_FSM_INPUT_STRING:
+                current_input = fsm->current_input_str;
+                printf("[DBG] cur_state='%s' input='%s' ",
+                       fsm->current_state->name, fsm->current_input_str);
+                break;
+            case MR_FSM_INPUT_INT:
+                current_input = &fsm->current_input_int;
+                printf("[DBG] cur_state='%s' input=%d ",
+                       fsm->current_state->name, fsm->current_input_int);
+                break;
+            case MR_FSM_INPUT_PATTERN:
+            case MR_FSM_INPUT_BLOB:
+            case MR_FSM_INPUT_LAST:
+            case MR_FSM_INPUT_NONE:
+                abort();
+        }
+        fsm->current_state->exec(fsm->current_input_type, current_input);
 
         fsm->current_state->on_exit();
-        next_state = fsm->current_state->next_state(MR_FSM_INPUT_INT,
-                                                    &fsm->current_input);
-        printf("[DBG] cur_state='%s' input=%d next_state='%s'\n",
-               fsm->current_state->name, fsm->current_input, next_state->name);
+        next_state = fsm->current_state->next_state(fsm->current_input_type,
+                                                    current_input);
+        printf("next_state='%s'\n", fsm->current_state->name);
         fsm->current_state = next_state;
         mr_mutex_unlock(&fsm->input_mutex);
     }
@@ -145,12 +164,27 @@ mr_fsm_state_t *mr_fsm_get_state(mr_fsm_t *fsm) {
     return fsm->current_state;
 }
 
-void mr_fsm_input(mr_fsm_t *fsm, int input) {
+void mr_fsm_input(mr_fsm_t *fsm, mr_fsm_input_type_e input_type, void *input) {
     mr_mutex_lock(&fsm->input_mutex);
     while (!fsm->ready_for_input) {
         mr_cond_wait(&fsm->input_cond, &fsm->input_mutex);
     }
-    fsm->current_input = input;
+
+    fsm->current_input_type = input_type;
+    switch (input_type) {
+        case MR_FSM_INPUT_INT:
+            fsm->current_input_int = *(int *)input;
+            break;
+        case MR_FSM_INPUT_STRING:
+            strncpy(fsm->current_input_str, input, MR_FSM_INPUT_STRING_MAX_LEN);
+            break;
+        case MR_FSM_INPUT_NONE: // fall through all unspupported types
+        case MR_FSM_INPUT_PATTERN:
+        case MR_FSM_INPUT_BLOB:
+        case MR_FSM_INPUT_LAST:
+            abort();
+    }
+
     fsm->ready_for_input = false;
     mr_mutex_unlock(&fsm->input_mutex);
 

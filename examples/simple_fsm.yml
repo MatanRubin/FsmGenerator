@@ -4,7 +4,11 @@ states:
           transitions:
           - 0: S2
           - 1: S1
+#          - "hello": S1
+#          - "goodbye": S2
         - name: S2
           transitions:
           - 0: S1
           - 1: S2
+#          - "hello": S2
+#          - "goodbye": S1
