@@ -102,8 +102,8 @@ class CodeGenerator(object):
 class Transition(object):
 
     def __init__(self, transition_yml):
-        self.input = transition_yml.keys()[0]
-        self.next_state = transition_yml.values()[0]
+        self.input = list(transition_yml.keys())[0]
+        self.next_state = list(transition_yml.values())[0]
 
     def __str__(self):
         return "Transition={{ input={} next_state='{}' }}"\
@@ -154,7 +154,7 @@ class FsmGenerator(object):
 
     def _parse_input_file(self):
         with open(self.input_file, 'r') as stream:
-            yml = yaml.load(stream)
+            yml = yaml.safe_load(stream)
         self._validate_fsm_yml(yml)
         name = yml["name"]
         states = []

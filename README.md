@@ -40,6 +40,9 @@ Have a look at [this great blog post](http://gameprogrammingpatterns.com/state.h
 After cloning the repository, run the following commands to build the project:
 
 ```
+# create the state machine files
+./bin/mr_fsm_gen.py -i examples/simple_fsm.yml -o examples/
+
 mkdir build
 cd build
 cmake ..
